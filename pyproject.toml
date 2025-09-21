@@ -1,0 +1,8 @@
+[project]
+name = "fastmp"
+version = "0.0.1"
+
+[build-system]
+requires = ["scikit-build-core", "nanobind"]
+build-backend = "scikit_build_core.build"
+wheel.packages = ["python/fastmp"]

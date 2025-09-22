@@ -12,8 +12,19 @@ using const_pyarr_t = nb::ndarray<const double, nb::numpy, nb::ndim<1>, nb::c_co
 using pyarr_t = nb::ndarray<double, nb::numpy, nb::ndim<1>, nb::c_contig, nb::device::cpu>;
 
 NB_MODULE(_fastmp, m) {
-    m.def("compute_mean_std", [](const_pyarr_t T, uint64_t m) {
-        uint64_t n = T.shape(0);
+    m.def("sliding_window_dot_product", [](const_pyarr_t T, const_pyarr_t Q) {
+        size_t n = T.shape(0);
+        size_t m = Q.shape(0);
+
+        std::vector<double> QT(n - m + 1);
+
+        sliding_window_dot_prodouct(T.data(), Q.data(), QT.data(), n, m);
+
+        return pyarr_t(QT.data(), {n - m + 1}).cast();
+    });
+
+    m.def("compute_mean_std", [](const_pyarr_t T, size_t m) {
+        size_t n = T.shape(0);
         std::vector<double> mu(n - m + 1);
         std::vector<double> sigma(n - m + 1);
 

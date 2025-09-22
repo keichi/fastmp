@@ -72,27 +72,27 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     }
 
     for (size_t j = 0;  j < n - m + 1; j++) {
-        D[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));
+        P[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));
     }
 
     for (size_t j = 0; j < excl_zone; j++){
-        D[j] = std::numeric_limits<double>::infinity();
-    }
-
-    for (size_t j = 0; j < n - m + 1; j++) {
-        P[j] = D[j];
+        P[j] = std::numeric_limits<double>::infinity();
     }
 
     for (size_t i = 1; i < n - m + 1; i++) {
         // Calculate sliding-window dot product
         for (size_t j = n - m; j > 0; j--) {
-            QT[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
+            D[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
-        QT[0] = QT_first[i];
+        D[0] = QT_first[i];
+
+        for (size_t j = 0; j < n - m + 1; j++) {
+            QT[j] = D[j];
+        }
 
         // Calculate distance profile
         for (size_t j = 0;  j < n - m + 1; j++) {
-            D[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
+            D[j] = std::sqrt(2.0 * m * (1.0 - (D[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
         }
 
         // Apply exclusion zone

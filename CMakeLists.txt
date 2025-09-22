@@ -15,5 +15,9 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 find_package(nanobind CONFIG REQUIRED)
 
-nanobind_add_module(_fastmp src/fastmp.cpp src/core.cpp)
+add_library(fastmp src/core.cpp)
+
+nanobind_add_module(_fastmp src/fastmp.cpp)
+target_link_libraries(_fastmp PRIVATE fastmp)
+
 install(TARGETS _fastmp DESTINATION ${SKBUILD_PROJECT_NAME})

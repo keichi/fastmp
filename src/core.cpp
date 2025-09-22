@@ -61,7 +61,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 {
     ssize_t excl_zone = std::ceil(m / 4.0);
 
-    std::vector<double> QT(n - m + 1), QT_first(n - m + 1), D(n - m + 1);
+    std::vector<double> QT(n - m + 1), QT2(n - m + 1),QT_first(n - m + 1), D(n - m + 1);
     std::vector<double> mu(n - m + 1), sigma(n - m + 1);
 
     compute_mean_std(T, mu.data(), sigma.data(), n, m);
@@ -82,18 +82,16 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 
     for (size_t i = 1; i < n - m + 1; i++) {
         // Calculate sliding-window dot product
+        QT2[0] = QT_first[i];
+        #pragma ivdep
         for (size_t j = 1; j < n - m + 1; j++) {
-            D[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
-        }
-        D[0] = QT_first[i];
-
-        for (size_t j = 0; j < n - m + 1; j++) {
-            QT[j] = D[j];
+            QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
 
         // Calculate distance profile
+        #pragma ivdep
         for (size_t j = 0;  j < n - m + 1; j++) {
-            D[j] = std::sqrt(2.0 * m * (1.0 - (D[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
+            D[j] = std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
         }
 
         // Apply exclusion zone
@@ -104,8 +102,14 @@ void stomp(const double *T, double *P, size_t n, size_t m)
         }
 
         // Update matrix profile
+        #pragma ivdep
         for (size_t j = 0; j < n - m + 1; j++) {
             P[j] = std::min(P[j], D[j]);
+        }
+
+        #pragma ivdep
+        for (size_t j = 0; j < n - m + 1; j++) {
+            QT[j] = QT2[j];
         }
     }
 }

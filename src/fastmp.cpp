@@ -20,7 +20,7 @@ NB_MODULE(_fastmp, m) {
 
         sliding_window_dot_prodouct(T.data(), Q.data(), QT.data(), n, m);
 
-        return pyarr_t(QT.data(), {n - m + 1}).cast();
+        return pyarr_t(QT.data(), {QT.size()}).cast();
     });
 
     m.def("compute_mean_std", [](const_pyarr_t T, size_t m) {
@@ -30,6 +30,15 @@ NB_MODULE(_fastmp, m) {
 
         compute_mean_std(T.data(), mu.data(), sigma.data(), n, m);
 
-        return pyarr_t(mu.data(), {n - m + 1}).cast();
+        return pyarr_t(mu.data(), {mu.size()}).cast();
+    });
+
+    m.def("stomp", [](const_pyarr_t T, size_t m) {
+        size_t n = T.shape(0);
+        std::vector<double> P(n - m + 1);
+
+        stomp(T.data(), P.data(), n, m);
+
+        return pyarr_t(P.data(), {P.size()}).cast();
     });
 }

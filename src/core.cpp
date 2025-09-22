@@ -1,5 +1,5 @@
 #include <cmath>
-#include <iostream>
+#include <limits>
 #include <vector>
 
 #include "pocketfft.hpp"
@@ -8,7 +8,7 @@ void sliding_window_dot_prodouct(const double *T, const double *Q, double *QT, s
 {
     std::vector<double> Ta(n * 2), Qra(n * 2);
     std::vector<std::complex<double>> Taf(n + 1), Qraf(n + 1);
-    
+
     for (size_t i = 0; i < n; i++) {
         Ta[i] = T[i];
     }
@@ -56,27 +56,55 @@ void compute_mean_std(const double *T, double *mu, double *sigma, size_t n, size
     }
 }
 
-// calc_dist_profile()
-// {
-//     return np.sqrt(2.0 * m * (1.0 - (QT - m * mu[i] * mu) / (m * sigma[i] * sigma)))
-// }
-// 
-// stomp()
-// {
-//     for (int i = 1; i < n - m + 1; i++) {
-//         for (int j = n - m; j > 0; j--) {
-//             QT[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
-//         }
-//         QT[0] = QT_first[i];
-// 
-//         D = calc_dist_profile(QT, m, mu, sigma, i):
-// 
-//         // Apply exclusion zone
-//         for j in range(i - excl_zone, i + excl_zone):
-//             if 0 <= j < D.shape[0]:
-//                 D[j] = np.inf
-// 
-//         P = np.minimum(P, D)
-//     }
-// }
+void stomp(const double *T, double *P, size_t n, size_t m)
+{
+    ssize_t excl_zone = std::ceil(m / 4.0);
 
+    std::vector<double> QT(n - m + 1), QT_first(n - m + 1), D(n - m + 1);
+    std::vector<double> mu(n - m + 1), sigma(n - m + 1);
+
+    compute_mean_std(T, mu.data(), sigma.data(), n, m);
+
+    sliding_window_dot_prodouct(T, T, QT.data(), n, m);
+
+    for (size_t j = 0; j < n - m + 1; j++) {
+        QT_first[j] = QT[j];
+    }
+
+    for (size_t j = 0;  j < n - m + 1; j++) {
+        D[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));
+    }
+
+    for (size_t j = 0; j < excl_zone; j++){
+        D[j] = std::numeric_limits<double>::infinity();
+    }
+
+    for (size_t j = 0; j < n - m + 1; j++) {
+        P[j] = D[j];
+    }
+
+    for (size_t i = 1; i < n - m + 1; i++) {
+        // Calculate sliding-window dot product
+        for (size_t j = n - m; j > 0; j--) {
+            QT[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
+        }
+        QT[0] = QT_first[i];
+
+        // Calculate distance profile
+        for (size_t j = 0;  j < n - m + 1; j++) {
+            D[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
+        }
+
+        // Apply exclusion zone
+        for (ssize_t j = static_cast<ssize_t>(i) - excl_zone; j < static_cast<ssize_t>(i) + excl_zone; j++){
+            if (0 <= j && j < n - m + 1){
+                D[j] = std::numeric_limits<double>::infinity();
+            }
+        }
+
+        // Update matrix profile
+        for (size_t j = 0; j < n - m + 1; j++) {
+            P[j] = std::min(P[j], D[j]);
+        }
+    }
+}

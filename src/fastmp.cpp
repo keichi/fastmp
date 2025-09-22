@@ -2,6 +2,7 @@
 #include <vector>
 
 #include <nanobind/nanobind.h>
+#include <nanobind/stl/pair.h>
 #include <nanobind/ndarray.h>
 
 #include "core.hpp"
@@ -30,7 +31,10 @@ NB_MODULE(_fastmp, m) {
 
         compute_mean_std(T.data(), mu.data(), sigma.data(), n, m);
 
-        return pyarr_t(mu.data(), {mu.size()}).cast();
+        return std::make_pair(
+                pyarr_t(mu.data(), {mu.size()}).cast(),
+                pyarr_t(sigma.data(), {sigma.size()}).cast()
+        );
     });
 
     m.def("stomp", [](const_pyarr_t T, size_t m) {

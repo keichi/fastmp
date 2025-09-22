@@ -46,13 +46,13 @@ void compute_mean_std(const double *T, double *mu, double *sigma, size_t n, size
         sum_T += T[i];
         sum_T2 += T[i] * T[i];
 
-        if (i - m >= 0) {
+        if (i + 1 >= m) {
             sum_T_lag += T[i - m];
             sum_T2_lag += T[i - m] * T[i - m];
-        }
 
-        mu[i - m + 1] = (sum_T - sum_T_lag) / m;
-        sigma[i - m + 1] = std::sqrt((sum_T2 - sum_T2_lag) / m - mu[i - m + 1] * mu[i - m + 1]);
+            mu[i - m + 1] = (sum_T - sum_T_lag) / m;
+            sigma[i - m + 1] = std::sqrt((sum_T2 - sum_T2_lag) / m - mu[i - m + 1] * mu[i - m + 1]);
+        }
     }
 }
 

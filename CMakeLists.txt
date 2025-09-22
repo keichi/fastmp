@@ -16,6 +16,10 @@ execute_process(
 find_package(nanobind CONFIG REQUIRED)
 
 add_library(fastmp src/core.cpp)
+set_target_properties(fastmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_executable(bench src/bench.cpp)
+target_link_libraries(bench PRIVATE fastmp)
 
 nanobind_add_module(_fastmp src/fastmp.cpp)
 target_link_libraries(_fastmp PRIVATE fastmp)

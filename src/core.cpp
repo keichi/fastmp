@@ -2,6 +2,7 @@
 #include <limits>
 #include <vector>
 
+#define POCKETFFT_NO_MULTITHREADING
 #include "pocketfft.hpp"
 
 void sliding_window_dot_prodouct(const double *T, const double *Q, double *QT, size_t n, size_t m)
@@ -81,7 +82,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 
     for (size_t i = 1; i < n - m + 1; i++) {
         // Calculate sliding-window dot product
-        for (size_t j = n - m; j > 0; j--) {
+        for (size_t j = 1; j < n - m + 1; j++) {
             D[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
         D[0] = QT_first[i];

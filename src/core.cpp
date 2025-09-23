@@ -80,35 +80,41 @@ void stomp(const double *T, double *P, size_t n, size_t m)
         P[j] = std::numeric_limits<double>::infinity();
     }
 
+    for (size_t j = 0; j < n - m + 1; j++) {
+        P[0] = std::min(P[0], P[j]);
+    }
+
     for (size_t i = 1; i < n - m + 1; i++) {
         // Calculate sliding-window dot product
         QT2[0] = QT_first[i];
         #pragma ivdep
-        for (size_t j = 1; j < n - m + 1; j++) {
+        for (size_t j = i; j < n - m + 1; j++) {
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
+        }
+
+        // Apply exclusion zone
+        for (size_t j = i; j < i + excl_zone; j++){
+            D[j] = std::numeric_limits<double>::infinity();
         }
 
         // Calculate distance profile
         #pragma ivdep
-        for (size_t j = 0;  j < n - m + 1; j++) {
+        for (size_t j = i + excl_zone;  j < n - m + 1; j++) {
             D[j] = std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
-        }
-
-        // Apply exclusion zone
-        for (ssize_t j = static_cast<ssize_t>(i) - excl_zone; j < static_cast<ssize_t>(i) + excl_zone; j++){
-            if (0 <= j && j < n - m + 1){
-                D[j] = std::numeric_limits<double>::infinity();
-            }
         }
 
         // Update matrix profile
         #pragma ivdep
-        for (size_t j = 0; j < n - m + 1; j++) {
+        for (size_t j = i; j < n - m + 1; j++) {
             P[j] = std::min(P[j], D[j]);
         }
 
+        for (size_t j = i; j < n - m + 1; j++) {
+            P[i] = std::min(P[i], D[j]);
+        }
+
         #pragma ivdep
-        for (size_t j = 0; j < n - m + 1; j++) {
+        for (size_t j = i; j < n - m + 1; j++) {
             QT[j] = QT2[j];
         }
     }

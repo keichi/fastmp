@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -61,7 +62,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 {
     ssize_t excl_zone = std::ceil(m / 4.0);
 
-    std::vector<double> QT(n - m + 1), QT2(n - m + 1),QT_first(n - m + 1), D(n - m + 1);
+    std::vector<double> QT(n - m + 1), QT2(n - m + 1), D(n - m + 1);
     std::vector<double> mu(n - m + 1), sigma(n - m + 1);
 
     compute_mean_std(T, mu.data(), sigma.data(), n, m);
@@ -69,54 +70,43 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     sliding_window_dot_prodouct(T, T, QT.data(), n, m);
 
     #pragma omp simd
-    for (size_t j = 0; j < n - m + 1; j++) {
-        QT_first[j] = QT[j];
-    }
-
-    #pragma omp simd
     for (size_t j = 0;  j < n - m + 1; j++) {
         P[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));
     }
 
-    for (size_t j = 0; j < excl_zone; j++){
+    for (size_t j = 0; j < excl_zone + 1; j++){
         P[j] = std::numeric_limits<double>::infinity();
     }
 
-    for (size_t j = 0; j < n - m + 1; j++) {
+    for (size_t j = excl_zone + 1; j < n - m + 1; j++) {
         P[0] = std::min(P[0], P[j]);
     }
 
     for (size_t i = 1; i < n - m + 1; i++) {
         // Calculate sliding-window dot product
-        QT2[0] = QT_first[i];
         #pragma omp simd
         for (size_t j = i; j < n - m + 1; j++) {
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
 
-        // Apply exclusion zone
-        for (size_t j = i; j < std::min(i + excl_zone, n - m + 1); j++){
-            D[j] = std::numeric_limits<double>::infinity();
-        }
-
         // Calculate distance profile
         #pragma omp simd
-        for (size_t j = i + excl_zone;  j < n - m + 1; j++) {
+        for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
             D[j] = std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
         }
 
         // Update matrix profile
         #pragma omp simd
-        for (size_t j = i; j < n - m + 1; j++) {
+        for (size_t j = i + excl_zone + 1; j < n - m + 1; j++) {
             P[j] = std::min(P[j], D[j]);
         }
 
-         double min_pi = D[i];
-         #pragma omp simd reduction(min:min_pi)
-         for (size_t j = i + 1; j < n - m + 1; j++) {
-             min_pi = std::min(P[i], D[j]);
-         }
-         P[i] = min_pi;
+        double min_pi = P[i];
+        #pragma omp simd reduction(min:min_pi)
+        for (size_t j = i + excl_zone + 1; j < n - m + 1; j++) {
+            min_pi = std::min(min_pi, D[j]);
+        }
+        P[i] = min_pi;
 
         #pragma omp simd
         for (size_t j = i; j < n - m + 1; j++) {

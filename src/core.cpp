@@ -1,5 +1,4 @@
 #include <cmath>
-#include <iostream>
 #include <limits>
 #include <vector>
 
@@ -62,11 +61,9 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 {
     ssize_t excl_zone = std::ceil(m / 4.0);
 
-    std::vector<double> QT(n - m + 1), QT2(n - m + 1), D(n - m + 1);
-    std::vector<double> mu(n - m + 1), sigma(n - m + 1);
+    std::vector<double> QT(n - m + 1), QT2(n - m + 1), mu(n - m + 1), sigma(n - m + 1);
 
     compute_mean_std(T, mu.data(), sigma.data(), n, m);
-
     sliding_window_dot_prodouct(T, T, QT.data(), n, m);
 
     #pragma omp simd
@@ -83,34 +80,25 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     }
 
     for (size_t i = 1; i < n - m + 1; i++) {
-        // Calculate sliding-window dot product
+        // Calculate sliding-window dot products
         #pragma omp simd
         for (size_t j = i; j < n - m + 1; j++) {
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
 
-        // Calculate distance profile
-        #pragma omp simd
-        for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
-            D[j] = std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
-        }
-
-        // Update matrix profile
-        #pragma omp simd
-        for (size_t j = i + excl_zone + 1; j < n - m + 1; j++) {
-            P[j] = std::min(P[j], D[j]);
-        }
-
         double min_pi = P[i];
+
+        // Calculate distances and update matrix profile
         #pragma omp simd reduction(min:min_pi)
-        for (size_t j = i + excl_zone + 1; j < n - m + 1; j++) {
-            min_pi = std::min(min_pi, D[j]);
+        for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
+            double dist =
+                std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
+            P[j] = std::min(P[j], dist);
+            min_pi = std::min(min_pi, dist);
         }
+
         P[i] = min_pi;
 
-        #pragma omp simd
-        for (size_t j = i; j < n - m + 1; j++) {
-            QT[j] = QT2[j];
-        }
+        QT.swap(QT2);
     }
 }

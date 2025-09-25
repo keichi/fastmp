@@ -82,15 +82,15 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     sliding_window_dot_product_naive(T, T, QT.data(), n, m);
 
     for (size_t j = 0;  j < n - m + 1; j++) {
-        P[j] = 1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j]);
+        P[j] = (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j]);
     }
 
     for (size_t j = 0; j < excl_zone + 1; j++){
-        P[j] = DBL_MAX;
+        P[j] = 0.0;
     }
 
     for (size_t j = excl_zone + 1; j < n - m + 1; j++) {
-        P[0] = std::min(P[0], P[j]);
+        P[0] = std::max(P[0], P[j]);
     }
 
     for (size_t i = 1; i < n - m + 1; i++) {
@@ -100,25 +100,25 @@ void stomp(const double *T, double *P, size_t n, size_t m)
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
 
-        double min_pi = P[i];
+        double max_pi = P[i];
 
         for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
             // Calculate distance profile
-            double dist = 1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j]);
+            double dist = (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j]);
 
             // Update matrix profile
-            if (dist < P[j]) P[j] = dist;
+            if (dist > P[j]) P[j] = dist;
 
             // Note: gcc/clang require -ffast-math to vectorize this reduction.
-            if (dist < min_pi) min_pi = dist;
+            if (dist > max_pi) max_pi = dist;
         }
 
-        P[i] = min_pi;
+        P[i] = max_pi;
 
         QT.swap(QT2);
     }
 
     for (size_t i = 0;  i < n - m + 1; i++) {
-        P[i] = std::sqrt(2.0 * m * P[i]);
+        P[i] = std::sqrt(2.0 * m * (1.0 - P[i]));
     }
 }

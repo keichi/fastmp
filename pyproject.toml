@@ -1,6 +1,30 @@
 [project]
 name = "fastmp"
 version = "0.0.1"
+authors = [
+    { name="Keichi Takahashi", email="hello@keichi.dev" }
+]
+description = "A high-performance implementation of the Empirical Dynamic Modeling (EDM) framework"
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+classifiers = [
+    "Programming Language :: C++",
+    "Programming Language :: Python",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "numpy>=1.24.0"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.3.0"
+]
 
 [build-system]
 requires = ["scikit-build-core", "nanobind"]

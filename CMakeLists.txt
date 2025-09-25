@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15...4.1)
-project(${SKBUILD_PROJECT_NAME} LANGUAGES CXX)
+project(fastmp LANGUAGES CXX)
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
 
@@ -26,4 +26,4 @@ target_link_libraries(bench PRIVATE fastmp)
 nanobind_add_module(_fastmp src/fastmp.cpp)
 target_link_libraries(_fastmp PRIVATE fastmp)
 
-install(TARGETS _fastmp DESTINATION ${SKBUILD_PROJECT_NAME})
+install(TARGETS _fastmp DESTINATION fastmp)

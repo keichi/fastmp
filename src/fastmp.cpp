@@ -19,7 +19,7 @@ NB_MODULE(_fastmp, m) {
 
         std::vector<double> QT(n - m + 1);
 
-        sliding_window_dot_product(T.data(), Q.data(), QT.data(), n, m);
+        sliding_window_dot_product_fft(T.data(), Q.data(), QT.data(), n, m);
 
         return pyarr_t(QT.data(), {QT.size()}).cast();
     });

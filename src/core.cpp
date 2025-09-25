@@ -5,7 +5,7 @@
 #define POCKETFFT_NO_MULTITHREADING
 #include "pocketfft.hpp"
 
-void sliding_window_dot_product(const double *T, const double *Q, double *QT, size_t n, size_t m)
+void sliding_window_dot_product_fft(const double *T, const double *Q, double *QT, size_t n, size_t m)
 {
     std::vector<double> Ta(n * 2), Qra(n * 2);
     std::vector<std::complex<double>> Taf(n + 1), Qraf(n + 1);
@@ -33,6 +33,19 @@ void sliding_window_dot_product(const double *T, const double *Q, double *QT, si
 
     for (size_t i = m - 1; i < n; i++) {
         QT[i - m + 1] = Qra[i];
+    }
+}
+
+void sliding_window_dot_product_naive(const double *T, const double *Q, double *QT, size_t n, size_t m)
+{
+    for (size_t i = 0; i < n - m + 1; i++) {
+        QT[i] += 0.0;
+    }
+
+    for (size_t j = 0; j < m; j++) {
+        for (size_t i = 0; i < n - m + 1; i++) {
+            QT[i] += Q[j] * T[i + j];
+        }
     }
 }
 
@@ -64,7 +77,9 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     std::vector<double> QT(n - m + 1), QT2(n - m + 1), mu(n - m + 1), sigma(n - m + 1);
 
     compute_mean_std(T, mu.data(), sigma.data(), n, m);
-    sliding_window_dot_product(T, T, QT.data(), n, m);
+
+    // TODO: Use sliding_window_dot_product_fft if m is large
+    sliding_window_dot_product_naive(T, T, QT.data(), n, m);
 
     for (size_t j = 0;  j < n - m + 1; j++) {
         P[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));

@@ -23,7 +23,8 @@ dependencies = [
 
 [project.optional-dependencies]
 test = [
-    "pytest>=8.3.0"
+    "pytest>=8.3.0",
+    "stumpy>=1.13.0"
 ]
 
 [build-system]

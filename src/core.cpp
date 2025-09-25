@@ -82,7 +82,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     sliding_window_dot_product_naive(T, T, QT.data(), n, m);
 
     for (size_t j = 0;  j < n - m + 1; j++) {
-        P[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));
+        P[j] = 1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j]);
     }
 
     for (size_t j = 0; j < excl_zone + 1; j++){
@@ -104,8 +104,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 
         for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
             // Calculate distance profile
-            double dist =
-                std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
+            double dist = 1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j]);
 
             // Update matrix profile
             if (dist < P[j]) P[j] = dist;
@@ -117,5 +116,9 @@ void stomp(const double *T, double *P, size_t n, size_t m)
         P[i] = min_pi;
 
         QT.swap(QT2);
+    }
+
+    for (size_t i = 0;  i < n - m + 1; i++) {
+        P[i] = std::sqrt(2.0 * m * P[i]);
     }
 }

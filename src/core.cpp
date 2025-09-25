@@ -107,10 +107,10 @@ void stomp(const double *T, double *P, size_t n, size_t m)
             double dist = (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j]);
 
             // Update matrix profile
-            if (dist > P[j]) P[j] = dist;
+            P[j] = std::max(P[j], dist);
 
             // Note: gcc/clang require -ffast-math to vectorize this reduction.
-            if (dist > max_pi) max_pi = dist;
+            max_pi = std::max(max_pi, dist);
         }
 
         P[i] = max_pi;

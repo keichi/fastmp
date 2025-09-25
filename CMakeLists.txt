@@ -15,11 +15,8 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 find_package(nanobind CONFIG REQUIRED)
 
-find_package(OpenMP REQUIRED)
-
 add_library(fastmp src/core.cpp)
 set_target_properties(fastmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
-target_link_libraries(fastmp PRIVATE OpenMP::OpenMP_CXX)
 
 add_executable(bench src/bench.cpp)
 target_link_libraries(bench PRIVATE fastmp)

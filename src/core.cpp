@@ -66,7 +66,6 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     compute_mean_std(T, mu.data(), sigma.data(), n, m);
     sliding_window_dot_prodouct(T, T, QT.data(), n, m);
 
-    #pragma omp simd
     for (size_t j = 0;  j < n - m + 1; j++) {
         P[j] = std::sqrt(2.0 * m * (1.0 - (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j])));
     }
@@ -81,7 +80,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 
     for (size_t i = 1; i < n - m + 1; i++) {
         // Calculate sliding-window dot products
-        #pragma omp simd
+        #pragma ivdep
         for (size_t j = i; j < n - m + 1; j++) {
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
@@ -89,7 +88,6 @@ void stomp(const double *T, double *P, size_t n, size_t m)
         double min_pi = P[i];
 
         // Calculate distances and update matrix profile
-        #pragma omp simd reduction(min:min_pi)
         for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
             double dist =
                 std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));

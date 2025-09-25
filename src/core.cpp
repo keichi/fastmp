@@ -1,5 +1,5 @@
+#include <cfloat>
 #include <cmath>
-#include <limits>
 #include <vector>
 
 #define POCKETFFT_NO_MULTITHREADING
@@ -71,7 +71,7 @@ void stomp(const double *T, double *P, size_t n, size_t m)
     }
 
     for (size_t j = 0; j < excl_zone + 1; j++){
-        P[j] = std::numeric_limits<double>::infinity();
+        P[j] = DBL_MAX;
     }
 
     for (size_t j = excl_zone + 1; j < n - m + 1; j++) {
@@ -87,12 +87,16 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 
         double min_pi = P[i];
 
-        // Calculate distances and update matrix profile
         for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
+            // Calculate distance profile
             double dist =
                 std::sqrt(2.0 * m * (1.0 - (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j])));
-            P[j] = std::min(P[j], dist);
-            min_pi = std::min(min_pi, dist);
+
+            // Update matrix profile
+            if (dist < P[j]) P[j] = dist;
+
+            // Note: gcc/clang require -ffast-math to vectorize this reduction.
+            if (dist < min_pi) min_pi = dist;
         }
 
         P[i] = min_pi;

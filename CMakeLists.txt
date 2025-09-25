@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.15...4.1)
 project(${SKBUILD_PROJECT_NAME} LANGUAGES CXX)
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -ffast-math")
+
 if (CMAKE_VERSION VERSION_LESS 3.18)
   set(DEV_MODULE Development)
 else()

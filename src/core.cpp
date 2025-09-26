@@ -74,15 +74,19 @@ void stomp(const double *T, double *P, size_t n, size_t m)
 {
     size_t excl_zone = std::ceil(m / 4.0);
 
-    std::vector<double> QT(n - m + 1), QT2(n - m + 1), mu(n - m + 1), sigma(n - m + 1);
+    std::vector<double> QT(n - m + 1), QT2(n - m + 1), mu(n - m + 1), sigma_inv(n - m + 1);
 
-    compute_mean_std(T, mu.data(), sigma.data(), n, m);
+    compute_mean_std(T, mu.data(), sigma_inv.data(), n, m);
+
+    for (size_t i = 0;  i < n - m + 1; i++) {
+        sigma_inv[i] = 1.0 / sigma_inv[i];
+    }
 
     // TODO: Use sliding_window_dot_product_fft if m is large
     sliding_window_dot_product_naive(T, T, QT.data(), n, m);
 
     for (size_t j = 0;  j < n - m + 1; j++) {
-        P[j] = (QT[j] - m * mu[0] * mu[j]) / (m * sigma[0] * sigma[j]);
+        P[j] = (QT[j] - m * mu[0] * mu[j]) * sigma_inv[0] * sigma_inv[j];
     }
 
     for (size_t j = 0; j < excl_zone + 1; j++){
@@ -99,12 +103,13 @@ void stomp(const double *T, double *P, size_t n, size_t m)
         for (size_t j = i; j < n - m + 1; j++) {
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
         }
+        QT.swap(QT2);
 
         double max_pi = P[i];
 
         for (size_t j = i + excl_zone + 1;  j < n - m + 1; j++) {
             // Calculate distance profile
-            double dist = (QT2[j] - m * mu[i] * mu[j]) / (m * sigma[i] * sigma[j]);
+            double dist = (QT[j] - m * mu[i] * mu[j]) * sigma_inv[i] * sigma_inv[j];
 
             // Update matrix profile
             P[j] = std::max(P[j], dist);
@@ -114,11 +119,9 @@ void stomp(const double *T, double *P, size_t n, size_t m)
         }
 
         P[i] = max_pi;
-
-        QT.swap(QT2);
     }
 
     for (size_t i = 0;  i < n - m + 1; i++) {
-        P[i] = std::sqrt(2.0 * m * (1.0 - P[i]));
+        P[i] = std::sqrt(2.0 * m * (1.0 - P[i] / m));
     }
 }

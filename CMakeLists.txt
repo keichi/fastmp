@@ -33,7 +33,7 @@ set_target_properties(fastmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 add_executable(bench src/bench.cpp)
 target_link_libraries(bench PRIVATE fastmp)
 
-nanobind_add_module(_fastmp src/fastmp.cpp)
+nanobind_add_module(_fastmp src/bindings.cpp)
 target_link_libraries(_fastmp PRIVATE fastmp)
 
 install(TARGETS _fastmp DESTINATION fastmp)

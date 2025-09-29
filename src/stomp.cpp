@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <cmath>
 
-#include "core.hpp"
+#include "fastmp.hpp"
 
 void stomp(const double *__restrict _T, double *__restrict _P, size_t n, size_t m)
 {

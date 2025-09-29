@@ -1,6 +1,4 @@
-#include <cfloat>
-#include <cmath>
-#include <new>
+#include <algorithm>
 
 #include "core.hpp"
 

@@ -31,10 +31,20 @@ def test_compute_mean_std(n, m):
 
 
 @pytest.mark.parametrize("n,m", [(100, 10), (500, 20), (1000, 100)])
-def test_stomp(n, m):
+def test_selfjoin(n, m):
     T = np.random.rand(n)
 
-    mp = fastmp.stomp(T, m)
+    mp = fastmp.selfjoin(T, m)
     mp2 = stumpy.stump(T, m)[:, 0].astype(np.float64)
 
+    assert np.allclose(mp, mp2)
+
+@pytest.mark.parametrize("n,m", [(100, 10), (500, 20), (1000, 100)])
+def test_abjoin(n, m):
+    T1 = np.random.rand(n)
+    T2 = np.random.rand(n)
+
+    mp = fastmp.abjoin(T1, T2, m)
+
+    mp2 = stumpy.stump(T_A=T1, T_B=T2, m=m, ignore_trivial=False)[:, 0].astype(np.float64)
     assert np.allclose(mp, mp2)

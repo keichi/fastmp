@@ -36,11 +36,21 @@ NB_MODULE(_fastmp, m)
                               pyarr_t(sigma.data(), {sigma.size()}).cast());
     });
 
-    m.def("stomp", [](const_pyarr_t T, size_t m) {
+    m.def("selfjoin", [](const_pyarr_t T, size_t m) {
         size_t n = T.shape(0);
         std::vector<double> P(n - m + 1);
 
-        stomp(T.data(), P.data(), n, m);
+        selfjoin(T.data(), P.data(), n, m);
+
+        return pyarr_t(P.data(), {P.size()}).cast();
+    });
+
+    m.def("abjoin", [](const_pyarr_t T1, const_pyarr_t T2, size_t m) {
+        size_t n1 = T1.shape(0);
+        size_t n2 = T2.shape(0);
+        std::vector<double> P(n1 - m + 1);
+
+        abjoin(T1.data(), T2.data(), P.data(), n1, n2, m);
 
         return pyarr_t(P.data(), {P.size()}).cast();
     });

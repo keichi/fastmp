@@ -1,14 +1,20 @@
 cmake_minimum_required(VERSION 3.15...4.1)
 project(fastmp LANGUAGES CXX)
 
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -ffast-math")
+set(CMAKE_CXX_STANDARD 17)
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -qopt-report=max -qopt-report-phase=vec")
+if(DEFINED ENV{RELEASE_FLAGS})
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} $ENV{RELEASE_FLAGS}")
+else()
+  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -ffast-math")
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
-  set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Rpass=loop-vectorize -Rpass-analysis=loop-vectorize")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -qopt-report=max -qopt-report-phase=vec")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Rpass=loop-vectorize -Rpass-analysis=loop-vectorize")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopt-info-vec-optimized-missed")
 endif()
 
 if (CMAKE_VERSION VERSION_LESS 3.18)
@@ -28,8 +34,8 @@ find_package(nanobind CONFIG REQUIRED)
 add_library(fastmp src/dot_product.cpp src/stats.cpp src/stomp.cpp)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
-    # zmm-usage=high causes pocketfft to crash
-    set_source_files_properties(src/stomp.cpp PROPERTIES COMPILE_FLAGS "-qopt-zmm-usage=high")
+  # Cannot globally enable opt-zmm-usage=high since it causes pocketfft to crash
+  set_source_files_properties(src/stomp.cpp PROPERTIES COMPILE_FLAGS "-qopt-zmm-usage=high")
 endif()
 
 set_target_properties(fastmp PROPERTIES POSITION_INDEPENDENT_CODE ON)

@@ -30,4 +30,14 @@ test = [
 [build-system]
 requires = ["scikit-build-core", "nanobind"]
 build-backend = "scikit_build_core.build"
-wheel.packages = ["python/fastmp"]
+
+[tool.cibuildwheel]
+build = ["cp*-macosx_arm64", "cp*-manylinux_x86_64"]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux_x86_64*"
+environment = {RELEASE_FLAGS="-march=x86-64-v3 -ffast-math"}
+
+[[tool.cibuildwheel.overrides]]
+select = "*-macosx_arm64*"
+environment = {RELEASE_FLAGS="-mcpu=apple-m1 -ffast-math"}

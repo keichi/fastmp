@@ -1,4 +1,7 @@
+// vim: set ft=cpp:
 #include <cmath>
+
+extern "C" {
 
 void compute_mean_std(const double *T, double *mu, double *sigma, size_t n, size_t m)
 {
@@ -19,4 +22,6 @@ void compute_mean_std(const double *T, double *mu, double *sigma, size_t n, size
             sum_T2_lag += T[i + 1 - m] * T[i + 1 - m];
         }
     }
+}
+
 }

@@ -1,8 +1,11 @@
+// vim: set ft=cpp:
 #include <complex>
 #include <vector>
 
 #define POCKETFFT_NO_MULTITHREADING
 #include "pocketfft.hpp"
+
+extern "C" {
 
 void sliding_window_dot_product_fft(const double *T, const double *Q, double *QT, size_t n,
                                     size_t m)
@@ -48,4 +51,6 @@ void sliding_window_dot_product_naive(const double *T, const double *Q, double *
             QT[i] += Q[j] * T[i + j];
         }
     }
+}
+
 }

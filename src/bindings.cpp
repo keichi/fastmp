@@ -4,7 +4,7 @@
 #include <nanobind/ndarray.h>
 #include <nanobind/stl/pair.h>
 
-#include "fastmp.hpp"
+#include "quickmp.hpp"
 
 namespace nb = nanobind;
 
@@ -12,7 +12,7 @@ using const_pyarr_t =
     nb::ndarray<const double, nb::numpy, nb::ndim<1>, nb::c_contig, nb::device::cpu>;
 using pyarr_t = nb::ndarray<double, nb::numpy, nb::ndim<1>, nb::c_contig, nb::device::cpu>;
 
-NB_MODULE(_fastmp, m)
+NB_MODULE(_quickmp, m)
 {
     m.def("sliding_window_dot_product", [](const_pyarr_t T, const_pyarr_t Q) {
         size_t n = T.shape(0);

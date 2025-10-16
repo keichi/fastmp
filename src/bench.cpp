@@ -1,6 +1,6 @@
 #include <vector>
 
-#include "fastmp.hpp"
+#include "quickmp.hpp"
 
 int main()
 {

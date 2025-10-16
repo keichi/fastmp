@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15...4.1)
-project(fastmp LANGUAGES CXX)
+project(quickmp LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -31,19 +31,19 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE OUTPUT_VARIABLE nanobind_ROOT)
 find_package(nanobind CONFIG REQUIRED)
 
-add_library(fastmp src/dot_product.cpp src/stats.cpp src/stomp.cpp)
+add_library(quickmp src/dot_product.cpp src/stats.cpp src/stomp.cpp)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   # Cannot globally enable opt-zmm-usage=high since it causes pocketfft to crash
   set_source_files_properties(src/stomp.cpp PROPERTIES COMPILE_FLAGS "-qopt-zmm-usage=high")
 endif()
 
-set_target_properties(fastmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(quickmp PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_executable(bench src/bench.cpp)
-target_link_libraries(bench PRIVATE fastmp)
+target_link_libraries(bench PRIVATE quickmp)
 
-nanobind_add_module(_fastmp src/bindings.cpp)
-target_link_libraries(_fastmp PRIVATE fastmp)
+nanobind_add_module(_quickmp src/bindings.cpp)
+target_link_libraries(_quickmp PRIVATE quickmp)
 
-install(TARGETS _fastmp DESTINATION fastmp)
+install(TARGETS _quickmp DESTINATION quickmp)

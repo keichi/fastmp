@@ -1,26 +1,46 @@
-name: Build wheels
+name: Build and publish wheels
 
 on:
   push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
+    tags:
+      - v*
 
 jobs:
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+  build-wheels:
+    name: Build wheels
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-22.04, macos-14]
 
     steps:
-      - uses: actions/checkout@v5
+    - uses: actions/checkout@v5
 
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v3.2.0
+    - name: Build wheels
+      uses: pypa/cibuildwheel@v3.2.0
 
-      - uses: actions/upload-artifact@v4
-        with:
-          name: cibw-wheels-${{ matrix.os }}
-          path: ./wheelhouse/*.whl
+    - uses: actions/upload-artifact@v4
+      with:
+        name: cibw-wheels-${{ matrix.os }}
+        path: ./wheelhouse/*.whl
+
+  publish-wheels:
+    name: Upload wheels to PyPI
+    needs: [build-wheels]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/p/quickmp
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Download all the dists
+      uses: actions/download-artifact@v4
+      with:
+        pattern: cibw-wheels-*
+        path: dist/
+        merge-multiple: true
+
+    - name: Publish package distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1

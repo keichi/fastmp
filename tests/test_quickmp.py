@@ -5,11 +5,11 @@ import pytest
 
 
 @pytest.mark.parametrize("n,m", [(100, 10), (500, 20), (1000, 100)])
-def test_sliding_window_dot_product(n, m):
+def test_sliding_dot_product(n, m):
     T = np.random.rand(n)
     Q = np.random.rand(m)
 
-    QT = quickmp.sliding_window_dot_product(T, Q)
+    QT = quickmp.sliding_dot_product(T, Q)
 
     # Compare to naive calculation
     for i in range(n - m + 1):

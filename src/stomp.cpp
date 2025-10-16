@@ -22,8 +22,8 @@ void selfjoin(const double *__restrict _T, double *__restrict _P, size_t n, size
         sigma_inv[i] = 1.0 / sigma_inv[i];
     }
 
-    // TODO: Use sliding_window_dot_product_fft if m is large
-    sliding_window_dot_product_naive(T, T, QT, n, m);
+    // TODO: Use sliding_dot_product_fft if m is large
+    sliding_dot_product_naive(T, T, QT, n, m);
 
     for (size_t j = 0; j < n - m + 1; j++) {
         P[j] = (QT[j] - m * mu[0] * mu[j]) * sigma_inv[0] * sigma_inv[j];
@@ -41,7 +41,7 @@ void selfjoin(const double *__restrict _T, double *__restrict _P, size_t n, size
         double max_pi = P[i];
 
         for (size_t j = i + excl_zone + 1; j < n - m + 1; j++) {
-            // Calculate sliding-window dot product
+            // Calculate sliding dot product
             QT2[j] = QT[j - 1] - T[j - 1] * T[i - 1] + T[j + m - 1] * T[i + m - 1];
 
             // Calculate distance profile
@@ -96,8 +96,8 @@ void abjoin(const double *__restrict _T1, const double *__restrict _T2, double *
         sigma_inv2[i] = 1.0 / sigma_inv2[i];
     }
 
-    // TODO: Use sliding_window_dot_product_fft if m is large
-    sliding_window_dot_product_naive(T1, T2, QT, n1, m);
+    // TODO: Use sliding_dot_product_fft if m is large
+    sliding_dot_product_naive(T1, T2, QT, n1, m);
 
     for (size_t j = 0; j < n1 - m + 1; j++) {
         P[j] = (QT[j] - m * mu1[j] * mu2[0]) * sigma_inv1[j] * sigma_inv2[0];
@@ -105,11 +105,11 @@ void abjoin(const double *__restrict _T1, const double *__restrict _T2, double *
 
     for (size_t i = 1; i < n2 - m + 1; i++) {
         // Compute leftmost element
-        sliding_window_dot_product_naive(T1, T2 + i, QT2, m, m);
+        sliding_dot_product_naive(T1, T2 + i, QT2, m, m);
         P[0] = std::max(P[0], (QT2[0] - m * mu1[0] * mu2[i]) * sigma_inv1[0] * sigma_inv2[i]);
 
         for (size_t j = 1; j < n1 - m + 1; j++) {
-            // Calculate sliding-window dot product
+            // Calculate sliding dot product
             QT2[j] = QT[j - 1] - T1[j - 1] * T2[i - 1] + T1[j + m - 1] * T2[i + m - 1];
 
             // Calculate distance profile

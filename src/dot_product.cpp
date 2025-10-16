@@ -4,8 +4,7 @@
 #define POCKETFFT_NO_MULTITHREADING
 #include "pocketfft.hpp"
 
-void sliding_window_dot_product_fft(const double *T, const double *Q, double *QT, size_t n,
-                                    size_t m)
+void sliding_dot_product_fft(const double *T, const double *Q, double *QT, size_t n, size_t m)
 {
     std::vector<double> Ta(n * 2), Qra(n * 2);
     std::vector<std::complex<double>> Taf(n + 1), Qraf(n + 1);
@@ -36,7 +35,7 @@ void sliding_window_dot_product_fft(const double *T, const double *Q, double *QT
     }
 }
 
-void sliding_window_dot_product_naive(const double *T, const double *Q, double *QT, size_t n,
+void sliding_dot_product_naive(const double *T, const double *Q, double *QT, size_t n,
                                       size_t m)
 {
     for (size_t i = 0; i < n - m + 1; i++) {
